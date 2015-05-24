@@ -1,20 +1,23 @@
+var NUMBER_OF_SENSORS = 4,
+    SHIP_VELOCITY_X   = 50;
+
+var sensorSize = {
+  height: 15,
+  width: 70,
+  distance: 80
+}
+
 var sim_data = {}
 
 function sendSimData() {
   console.log("sending sim_data to server", sim_data)
+  //@todo
 }
-// 1. Wait for the onload even
-window.addEventListener("load",function() {
 
-  var sensorSize = {
-    height: 15,
-    width: 70,
-    distance: 80
-  }
-
+window.addEventListener("load", function() {
   var Q = window.Q = Quintus({ development: true })
-          .include("Sprites, Scenes, Input, 2D, Touch, UI")
-          .setup();
+    .include("Sprites, Scenes, Input, 2D, Touch, UI")
+    .setup();
 
   Q.input.keyboardControls();
 
@@ -110,10 +113,9 @@ window.addEventListener("load",function() {
       this.activationObject = new Q.Sprite({ x: Q.width/2, y: Q.height/2, w: 100, h: 100 });
 
       //add sensors
-      var num_sensors = 4;
-
       this.sensors = []
-      for (var i=0; i<num_sensors; i++) {
+
+      for (var i = 0; i < NUMBER_OF_SENSORS; i++) {
         this.sensors.push(Q.stage(0).insert(new Q.Sensor({sensorId: i})))
       }
     },
@@ -274,8 +276,6 @@ window.addEventListener("load",function() {
 
   function setupSimulation() {
 
-    var SHIP_VELOCITY_X = 50;
-
     var ship = Q("Ship").first()
     var asteroid = Q("Asteroid").first()
 
@@ -303,9 +303,9 @@ window.addEventListener("load",function() {
 
     setupSimulation()
 
-    stage.on("step",function() {
-      //code that's run on every frame
-    });
+    //code that's run on every frame
+    // stage.on("step",function() {
+    // });
   });
 
   Q.stageScene("level1");
