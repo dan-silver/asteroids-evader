@@ -8,7 +8,8 @@ window.addEventListener("load",function() {
 
   var sensorSize = {
     height: 15,
-    width: 70
+    width: 70,
+    distance: 80
   }
 
   var Q = window.Q = Quintus({ development: true })
@@ -109,7 +110,7 @@ window.addEventListener("load",function() {
       this.activationObject = new Q.Sprite({ x: Q.width/2, y: Q.height/2, w: 100, h: 100 });
 
       //add sensors
-      var num_sensors = 3;
+      var num_sensors = 4;
 
       this.sensors = []
       for (var i=0; i<num_sensors; i++) {
@@ -163,8 +164,10 @@ window.addEventListener("load",function() {
     updateSensorPositions: function() {
       for (var i=0; i<this.sensors.length; i++) {
         var sensor = this.sensors[i]
-        sensor.p.x = this.p.x + 50
-        sensor.p.y = this.p.y + sensor.p.sensorId * 50
+        sensor.p.angle = this.p.angle + (i / (this.sensors.length - 1)) * 90 + 45
+
+        sensor.p.x = this.p.x + (sensorSize.distance * Math.sin(sensor.p.angle * Math.PI / 180 - Math.PI / 2))
+        sensor.p.y = this.p.y + (sensorSize.distance * Math.cos(sensor.p.angle * Math.PI / 180 + Math.PI / 2))
       }
     },
 
