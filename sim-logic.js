@@ -3,8 +3,8 @@ var NUMBER_OF_SENSORS = 4,
 
 var sensorSize = {
   height: 15,
-  width: 70,
-  distance: 80
+  width: 60,
+  distance: 70
 }
 
 var sim_data = {}
@@ -29,7 +29,7 @@ window.addEventListener("load", function() {
   Q.Sprite.extend("VectorSprite", {
     draw: function(ctx) {
       var p = this.p;
-      ctx.fillStyle = "#FFF";
+      ctx.fillStyle = this.fillColor || "#FFF";
 
       ctx.beginPath();
       ctx.moveTo(p.points[0][0], p.points[0][1]);
@@ -55,13 +55,21 @@ window.addEventListener("load", function() {
     },
 
     collision: function(col) {
-      if(col.obj.isA("Asteroid")) {
+      if (col.obj.isA("Asteroid")) {
+        this.collision = true
         console.log("sensor " + this.p.sensorId + " hit an asteroid")
       }
     },
 
     step: function(dt) {
+      if (this.collision) {
+        this.fillColor = "#DB9A9A"
+      } else {
+        this.fillColor = "#9ADB9F"
+      }
 
+      //reset the collision boolean for the next frame
+      this.collision = false
     },
 
     createShape: function(p) {
@@ -309,8 +317,10 @@ window.addEventListener("load", function() {
   });
 
   Q.stageScene("level1");
-  Q.debug = true;
-  Q.debugFill = true
+
+  // uncomment the following 2 lines to see rendering bounds
+  // Q.debug = true;
+  // Q.debugFill = true
 });
 
 function getRandom(min, max) {
