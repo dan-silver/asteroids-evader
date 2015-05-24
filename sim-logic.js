@@ -7,7 +7,7 @@ var sensorSize = {
   distance: 70
 }
 
-var sim_data = {}
+var sim_data = []
 
 function sendSimData() {
   console.log("sending sim_data to server", sim_data)
@@ -46,7 +46,6 @@ window.addEventListener("load", function() {
       p = this.createShape(p);
 
       this._super(p, {
-        skipCollide: true,
         sensor: true
       });
       this.add("2d");
@@ -209,9 +208,7 @@ window.addEventListener("load", function() {
       this._super(p, {
         type: Q.SPRITE_ASTEROID,
         collisionMask: Q.SPRITE_SHIP,
-        // omega: Math.random() * 100,
-        omega: 0,
-        skipCollide: true
+        omega: 0
       });
       this.add("2d");
 
@@ -220,7 +217,7 @@ window.addEventListener("load", function() {
 
     collision: function(col) {
       if(col.obj.isA("Ship")) {
-        sim_data.collision = true;
+        sim_data.push({todo: true})
         sendSimData()
         setupSimulation()
       }
@@ -296,11 +293,6 @@ window.addEventListener("load", function() {
     //set the asteroid horizontally in the middle, randomize vertical postition
     asteroid.p.x = Q.width/2;
     asteroid.p.y = getRandom(0, Q.height);
-
-    //clear sim_data from the previous simulation
-    sim_data = {}
-    sim_data.asteroidPosY = asteroid.p.y,
-    sim_data.shipVelX = SHIP_VELOCITY_X
   }
 
 
