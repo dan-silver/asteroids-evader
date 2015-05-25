@@ -1,9 +1,15 @@
 # asteroids-evader
-Uses machine learning SVMs to avoid collisions with asteroids
+Uses machine learning to avoid collisions with asteroids
 
-The following steps are how I'm building the simulation.  (Work in progress)
+## How it works
+#### Simulation
 
-### Step 1 - Attach sensors to the ship
-5 sensors detect collisions with the asteroid and change color on contact.
+The simulation runs in a loop where a ship travels east and potentially collides with an asteroid.  Sensors attached to the ship change color on contact.
 
 ![screenshot](https://raw.githubusercontent.com/dan-silver/asteroids-evader/master/screenshot.png)
+
+The simulation ends either when the ship reaches the right side of the window, or it hits an asteroid.  At that point, the following information is sent to the server to be stored.
+ * Ids of sensors that were activated
+ * Simulation result, true if there was a collision and false otherwise
+
+#### Building the model
