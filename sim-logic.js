@@ -194,19 +194,6 @@ window.addEventListener("load", function() {
         sensor.p.x = this.p.x + (SENSORS.distance * Math.sin(sensor.p.angle * Math.PI / 180 - Math.PI / 2))
         sensor.p.y = this.p.y + (SENSORS.distance * Math.cos(sensor.p.angle * Math.PI / 180 + Math.PI / 2))
       }
-    },
-
-    reset: function() {
-      Q._extend(this.p, {
-        x: Q.width/2,
-        y: Q.height/2,
-        vx: 0,
-        vy: 0,
-        angle: 0,
-        omega: 0,
-        activated: false
-      });
-
     }
   });
 
