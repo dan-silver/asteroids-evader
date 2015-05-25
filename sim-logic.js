@@ -1,22 +1,29 @@
 var SHIP_VELOCITY_X = 50;
 
 var SENSORS = {
-  quantity: 3,
+  quantity: 10,
   height: 10,
   width: 30,
   distance: 50,
-  angle_spread: 90
+  angle_spread: 125
 }
 
 var sim_data = []
 
-function sendSimData() {
-  console.log("sending sim_data to server", sim_data)
-  //@todo
+function sendSimData(collision) {
+  var ship = Q("Ship").first()
+
+  var data = {
+    collision: collision,
+    activatedSensors: Object.keys(ship.activatedSensors)
+  }
+  $.post('http://localhost:3000/', data)
+
+  Q.stageScene("level1");
 }
 
 window.addEventListener("load", function() {
-  var Q = window.Q = Quintus({ development: true })
+  var Q = window.Q = Quintus({development: true, autoFocus: false })
     .include("Sprites, Scenes, Input, 2D, Touch, UI")
     .setup();
 
@@ -55,8 +62,7 @@ window.addEventListener("load", function() {
       this.collision = Q.collision(this, Q("Asteroid").first());
 
       if (this.collision) {
-        var ship = Q("Ship").first()
-        ship.activateSensor(this)
+        this.p.ship.activateSensor(this)
         console.log('collision')
       }
 
@@ -105,23 +111,23 @@ window.addEventListener("load", function() {
         omegaDelta: 700,
         maxOmega: 400,
         acceleration: 8,
-        points: [ [0, -10 ], [ 5, 10 ], [ -5,10 ]],
+        points: [[0, -10 ], [ 5, 10 ], [ -5,10 ]],
         activated: false
       });
 
       this.add("2d");
-
-      //add sensors
       this.sensors = []
 
+      this.activationObject = new Q.Sprite({ x: 0, y: 0, w: 100, h: 100 });
+    },
+
+    addSensors: function() {
       // array of sensor ids that have been activated (only added, not removed)
       this.activatedSensors = {}
 
       for (var i = 0; i < SENSORS.quantity; i++) {
-        this.sensors.push(Q.stage(0).insert(new Q.Sensor({sensorId: i})))
+        this.sensors.push(Q.stage(0).insert(new Q.Sensor({sensorId: i, ship: this})))
       }
-
-      this.activationObject = new Q.Sprite({ x: Q.width/2, y: Q.height/2, w: 100, h: 100 });
     },
 
     activateSensor: function(sensor) {
@@ -144,12 +150,13 @@ window.addEventListener("load", function() {
       if(!this.p.activated) {
         return this.checkActivation();
       }
+      this.updateSensorPositions()
 
       var p = this.p;
       p.angle += p.omega * dt;
       p.omega *=  1 - 1 * dt;
 
-      if(Q.inputs["right"]) { 
+      if(Q.inputs["right"]) {
         p.omega += p.omegaDelta * dt;
         if (p.omega > p.maxOmega) {
           p.omega = p.maxOmega;
@@ -169,7 +176,10 @@ window.addEventListener("load", function() {
         p.vx += thrustX * p.acceleration;
         p.vy += thrustY * p.acceleration;
       }
-      this.updateSensorPositions()
+
+      if (p.x > Q.width) {
+        sendSimData(false)
+      }
 
     },
 
@@ -182,7 +192,7 @@ window.addEventListener("load", function() {
     updateSensorPositions: function() {
       for (var i=0; i<this.sensors.length; i++) {
         var sensor = this.sensors[i]
-        sensor.p.angle = this.p.angle + (i / (this.sensors.length - 1)) * SENSORS.angle_spread + (SENSORS.angle_spread/2)
+        sensor.p.angle = this.p.angle + (i / (this.sensors.length - 1)) * SENSORS.angle_spread + ((180 - SENSORS.angle_spread)/2)
 
         sensor.p.x = this.p.x + (SENSORS.distance * Math.sin(sensor.p.angle * Math.PI / 180 - Math.PI / 2))
         sensor.p.y = this.p.y + (SENSORS.distance * Math.cos(sensor.p.angle * Math.PI / 180 + Math.PI / 2))
@@ -220,8 +230,7 @@ window.addEventListener("load", function() {
     collision: function(col) {
       if(col.obj.isA("Ship")) {
         sim_data.push({todo: true})
-        sendSimData()
-        Q.stageScene("level1");
+        sendSimData(true)
       }
     },
 
@@ -293,6 +302,11 @@ window.addEventListener("load", function() {
       x: Q.width/2,
       y: getRandom(0, Q.height)
     }));
+
+    //add the sensors after the ship starts moving
+    setTimeout(function() {
+      Q("Ship").first().addSensors()
+    }, 100)
   });
 
   Q.stageScene("level1");
