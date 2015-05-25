@@ -59,17 +59,14 @@ window.addEventListener("load", function() {
       this.add("2d");
     },
     step: function(dt) {
-      this.collision = Q.collision(this, Q("Asteroid").first());
+      var collision = Q.collision(this, Q("Asteroid").first());
 
-      if (this.collision) {
+      if (collision) {
         this.p.ship.activateSensor(this)
         console.log('collision')
       }
 
-      this.fillColor = this.collision ? "#DB9A9A" : "#9ADB9F"
-
-      //reset the collision boolean for the next frame
-      this.collision = false
+      this.fillColor = collision ? "#DB9A9A" : "#9ADB9F"
     },
 
     createShape: function(p) {
