@@ -1,4 +1,4 @@
-var NUMBER_OF_SENSORS = 4,
+var NUMBER_OF_SENSORS = 5,
     SHIP_VELOCITY_X   = 50;
 
 var sensorSize = {
@@ -33,7 +33,7 @@ window.addEventListener("load", function() {
 
       ctx.beginPath();
       ctx.moveTo(p.points[0][0], p.points[0][1]);
-      for(var i =1, max = p.points.length;i<max;i++) {
+      for (var i = 1;i<p.points.length;i++) {
         ctx.lineTo(p.points[i][0], p.points[i][1]);
       }
       ctx.fill();
@@ -49,18 +49,17 @@ window.addEventListener("load", function() {
         sensor: true
       });
       this.add("2d");
-
-      this.on("hit.sprite",this,"collision");
     },
-
-    collision: function(col) {
-      if (col.obj.isA("Asteroid")) {
-        this.collision = true
-        console.log("sensor " + this.p.sensorId + " hit an asteroid")
-      }
-    },
-
     step: function(dt) {
+      var asteroid = Q("Asteroid").first()
+
+      if (Q.collision(this, asteroid)) {
+        this.collision = true
+        console.log('sensor collision')
+      } else {
+        this.collision = false
+      }
+
       if (this.collision) {
         this.fillColor = "#DB9A9A"
       } else {
@@ -74,15 +73,15 @@ window.addEventListener("load", function() {
     createShape: function(p) {
       p = p || {};
 
-      p.points = [];
-
       var startAmount = p.size;
 
-      p.points.push([0, 0]);
-      p.points.push([0, sensorSize.height]);
-      p.points.push([sensorSize.width, sensorSize.height]);
-      p.points.push([sensorSize.width, 0]);
-
+      //draw a rectangle
+      p.points = [
+        [0, 0],
+        [0, sensorSize.height],
+        [sensorSize.width, sensorSize.height],
+        [sensorSize.width, 0]
+      ];
 
       p.w = sensorSize.width;
       p.h = sensorSize.height;
@@ -98,7 +97,6 @@ window.addEventListener("load", function() {
       return p;
     },
   });
-
 
   Q.VectorSprite.extend("Ship", {
     init: function(p) {
@@ -269,9 +267,6 @@ window.addEventListener("load", function() {
         p.points[i][1] -= minY + p.h/2;
       }
 
-
-      p.x = p.x || Math.random()*Q.width;
-      p.y = p.y || Math.random()*Q.height;
       p.cx = p.w/2;
       p.cy = p.h/2;
       p.angle = angle;
@@ -280,9 +275,8 @@ window.addEventListener("load", function() {
   });
 
   function setupSimulation() {
-
     var ship = Q("Ship").first()
-    var asteroid = Q("Asteroid").first()
+    var asteroid = Q("Asteroid").items[0]
 
     //set the ship on the left side heading right
     ship.p.x = Q.width * 0.05;
@@ -311,8 +305,8 @@ window.addEventListener("load", function() {
   Q.stageScene("level1");
 
   // uncomment the following 2 lines to see rendering bounds
-  // Q.debug = true;
-  // Q.debugFill = true
+  Q.debug = true;
+  Q.debugFill = true
 });
 
 function getRandom(min, max) {
