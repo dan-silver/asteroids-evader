@@ -1,10 +1,11 @@
-var NUMBER_OF_SENSORS = 5,
-    SHIP_VELOCITY_X   = 50;
+var SHIP_VELOCITY_X = 50;
 
-var sensorSize = {
-  height: 15,
-  width: 60,
-  distance: 70
+var SENSORS = {
+  quantity: 3,
+  height: 10,
+  width: 30,
+  distance: 50,
+  angle_spread: 90
 }
 
 var sim_data = []
@@ -33,7 +34,7 @@ window.addEventListener("load", function() {
 
       ctx.beginPath();
       ctx.moveTo(p.points[0][0], p.points[0][1]);
-      for (var i = 1;i<p.points.length;i++) {
+      for (var i = 1; i<p.points.length; i++) {
         ctx.lineTo(p.points[i][0], p.points[i][1]);
       }
       ctx.fill();
@@ -51,20 +52,15 @@ window.addEventListener("load", function() {
       this.add("2d");
     },
     step: function(dt) {
-      var asteroid = Q("Asteroid").first()
-
-      if (Q.collision(this, asteroid)) {
-        this.collision = true
-        console.log('sensor collision')
-      } else {
-        this.collision = false
-      }
+      this.collision = Q.collision(this, Q("Asteroid").first());
 
       if (this.collision) {
-        this.fillColor = "#DB9A9A"
-      } else {
-        this.fillColor = "#9ADB9F"
+        var ship = Q("Ship").first()
+        ship.activateSensor(this)
+        console.log('collision')
       }
+
+      this.fillColor = this.collision ? "#DB9A9A" : "#9ADB9F"
 
       //reset the collision boolean for the next frame
       this.collision = false
@@ -78,13 +74,13 @@ window.addEventListener("load", function() {
       //draw a rectangle
       p.points = [
         [0, 0],
-        [0, sensorSize.height],
-        [sensorSize.width, sensorSize.height],
-        [sensorSize.width, 0]
+        [0, SENSORS.height],
+        [SENSORS.width, SENSORS.height],
+        [SENSORS.width, 0]
       ];
 
-      p.w = sensorSize.width;
-      p.h = sensorSize.height;
+      p.w = SENSORS.width;
+      p.h = SENSORS.height;
 
       for(var i = 0; i < p.points.length; i++) {
         p.points[i][0] -= p.w/2;
@@ -115,14 +111,27 @@ window.addEventListener("load", function() {
 
       this.add("2d");
 
-      this.activationObject = new Q.Sprite({ x: Q.width/2, y: Q.height/2, w: 100, h: 100 });
-
       //add sensors
       this.sensors = []
 
-      for (var i = 0; i < NUMBER_OF_SENSORS; i++) {
+      // array of sensor ids that have been activated (only added, not removed)
+      this.activatedSensors = {}
+
+      for (var i = 0; i < SENSORS.quantity; i++) {
         this.sensors.push(Q.stage(0).insert(new Q.Sensor({sensorId: i})))
       }
+
+      this.activationObject = new Q.Sprite({ x: Q.width/2, y: Q.height/2, w: 100, h: 100 });
+    },
+
+    activateSensor: function(sensor) {
+      if(!this.p.activated) {
+        return this.checkActivation();
+      }
+
+      var sensorId = sensor.p.sensorId
+      this.activatedSensors[sensorId] = true
+
     },
 
     checkActivation: function() {
@@ -142,7 +151,9 @@ window.addEventListener("load", function() {
 
       if(Q.inputs["right"]) { 
         p.omega += p.omegaDelta * dt;
-        if(p.omega > p.maxOmega) { p.omega = p.maxOmega; }
+        if (p.omega > p.maxOmega) {
+          p.omega = p.maxOmega;
+        }
       } else if(Q.inputs["left"]) {
         p.omega -= p.omegaDelta * dt;
         if(p.omega < -p.maxOmega) { p.omega = -p.maxOmega; }
@@ -171,10 +182,10 @@ window.addEventListener("load", function() {
     updateSensorPositions: function() {
       for (var i=0; i<this.sensors.length; i++) {
         var sensor = this.sensors[i]
-        sensor.p.angle = this.p.angle + (i / (this.sensors.length - 1)) * 90 + 45
+        sensor.p.angle = this.p.angle + (i / (this.sensors.length - 1)) * SENSORS.angle_spread + (SENSORS.angle_spread/2)
 
-        sensor.p.x = this.p.x + (sensorSize.distance * Math.sin(sensor.p.angle * Math.PI / 180 - Math.PI / 2))
-        sensor.p.y = this.p.y + (sensorSize.distance * Math.cos(sensor.p.angle * Math.PI / 180 + Math.PI / 2))
+        sensor.p.x = this.p.x + (SENSORS.distance * Math.sin(sensor.p.angle * Math.PI / 180 - Math.PI / 2))
+        sensor.p.y = this.p.y + (SENSORS.distance * Math.cos(sensor.p.angle * Math.PI / 180 + Math.PI / 2))
       }
     },
 
@@ -196,13 +207,6 @@ window.addEventListener("load", function() {
     init: function(p) {
       p = this.createShape(p);
 
-      // if(!p.vx) {
-      //   p.startAngle = p.startAngle || Math.random()*360;
-      //   var speed = Math.random()*100 + 50;
-      //   p.vx = Math.cos(p.startAngle)*speed;
-      //   p.vy = Math.sin(p.startAngle)*speed;
-      // }
-
       this._super(p, {
         type: Q.SPRITE_ASTEROID,
         collisionMask: Q.SPRITE_SHIP,
@@ -217,7 +221,7 @@ window.addEventListener("load", function() {
       if(col.obj.isA("Ship")) {
         sim_data.push({todo: true})
         sendSimData()
-        setupSimulation()
+        Q.stageScene("level1");
       }
     },
 
@@ -274,39 +278,28 @@ window.addEventListener("load", function() {
    },
   });
 
-  function setupSimulation() {
-    var ship = Q("Ship").first()
-    var asteroid = Q("Asteroid").items[0]
-
+  Q.scene("level1",function(stage) {
     //set the ship on the left side heading right
-    ship.p.x = Q.width * 0.05;
-    ship.p.y = Q.height/2;
-    ship.p.angle = 90;
-    ship.p.vx = SHIP_VELOCITY_X;
+    stage.insert(new Q.Ship({
+      x: Q.width * 0.05,
+      y: Q.height/2,
+      angle: 90,
+      vx: SHIP_VELOCITY_X
+    }));
 
     //set the asteroid horizontally in the middle, randomize vertical postition
-    asteroid.p.x = Q.width/2;
-    asteroid.p.y = getRandom(0, Q.height);
-  }
-
-
-  Q.scene("level1",function(stage) {
-    var player = stage.insert(new Q.Ship());
-
-    stage.insert(new Q.Asteroid({ size: 50 }));
-
-    setupSimulation()
-
-    //code that's run on every frame
-    // stage.on("step",function() {
-    // });
+    stage.insert(new Q.Asteroid({
+      size: 50,
+      x: Q.width/2,
+      y: getRandom(0, Q.height)
+    }));
   });
 
   Q.stageScene("level1");
 
   // uncomment the following 2 lines to see rendering bounds
-  Q.debug = true;
-  Q.debugFill = true
+  // Q.debug = true;
+  // Q.debugFill = true
 });
 
 function getRandom(min, max) {
