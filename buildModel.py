@@ -24,12 +24,12 @@ train_data, test_data = percentage_split(data, [0.8, 0.2])
 determine_is_pos = lambda x: x[0] == True
 
 train_labels = map(determine_is_pos, train_data)
-train_features = train_data[:, 1:NUM_SENSORS].astype(np.float)
+train_features = train_data[:, 1:(NUM_SENSORS+1)].astype(np.float)
 
 print "{}% positive samples".format(len(filter(lambda x: x, train_labels)) / float(len(train_labels)) *100)
 
 test_labels = map(determine_is_pos, test_data)
-test_features = test_data[:, 1:NUM_SENSORS].astype(np.float)
+test_features = test_data[:, 1:(NUM_SENSORS+1)].astype(np.float)
 
 
 model = tree.DecisionTreeClassifier()
