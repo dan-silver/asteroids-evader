@@ -1,4 +1,4 @@
-var SHIP_VELOCITY_X = 50;
+var SHIP_VELOCITY_X = 450;
 
 var SENSORS = {
   quantity: 10,
@@ -13,13 +13,22 @@ var sim_data = []
 function sendSimData(collision) {
   var ship = Q("Ship").first()
 
-  var data = {
-    collision: collision,
-    activatedSensors: Object.keys(ship.activatedSensors)
-  }
-  $.post('http://localhost:3000/', data)
+  var sensorActivated = [] //0/1 = activated/not activated
 
-  Q.stageScene("level1");
+  //send an array of ints to the server, each int corresponds to a sensor being activated or not
+  for (var i=0; i<SENSORS.quantity; i++) {
+    if (i.toString() in ship.activatedSensors)
+      sensorActivated.push(1)
+    else
+      sensorActivated.push(0)
+  }
+
+  $.post('http://localhost:3000/', {
+    collision: collision ? 1 : 0,
+    sensors: sensorActivated
+  })
+
+  Q.stageScene("training");
 }
 
 window.addEventListener("load", function() {
@@ -63,7 +72,6 @@ window.addEventListener("load", function() {
 
       if (collision) {
         this.p.ship.activateSensor(this)
-        console.log('collision')
       }
 
       this.fillColor = collision ? "#DB9A9A" : "#9ADB9F"
@@ -71,8 +79,6 @@ window.addEventListener("load", function() {
 
     createShape: function(p) {
       p = p || {};
-
-      var startAmount = p.size;
 
       //draw a rectangle
       p.points = [
@@ -122,7 +128,7 @@ window.addEventListener("load", function() {
       // array of sensor ids that have been activated (only added, not removed)
       this.activatedSensors = {}
 
-      for (var i = 0; i < SENSORS.quantity; i++) {
+      for (var i=0; i<SENSORS.quantity; i++) {
         this.sensors.push(Q.stage(0).insert(new Q.Sensor({sensorId: i, ship: this})))
       }
     },
@@ -187,9 +193,10 @@ window.addEventListener("load", function() {
     },
 
     updateSensorPositions: function() {
-      for (var i=0; i<this.sensors.length; i++) {
+      for (var i=0; i<SENSORS.quantity; i++) {
         var sensor = this.sensors[i]
-        sensor.p.angle = this.p.angle + (i / (this.sensors.length - 1)) * SENSORS.angle_spread + ((180 - SENSORS.angle_spread)/2)
+        if (!sensor) continue;
+        sensor.p.angle = this.p.angle + (i / (SENSORS.quantity - 1)) * SENSORS.angle_spread + ((180 - SENSORS.angle_spread)/2)
 
         sensor.p.x = this.p.x + (SENSORS.distance * Math.sin(sensor.p.angle * Math.PI / 180 - Math.PI / 2))
         sensor.p.y = this.p.y + (SENSORS.distance * Math.cos(sensor.p.angle * Math.PI / 180 + Math.PI / 2))
@@ -271,7 +278,7 @@ window.addEventListener("load", function() {
    },
   });
 
-  Q.scene("level1",function(stage) {
+  Q.scene("training",function(stage) {
     //set the ship on the left side heading right
     stage.insert(new Q.Ship({
       x: Q.width * 0.05,
@@ -293,7 +300,7 @@ window.addEventListener("load", function() {
     }, 100)
   });
 
-  Q.stageScene("level1");
+  Q.stageScene("training");
 
   // uncomment the following 2 lines to see rendering bounds
   // Q.debug = true;

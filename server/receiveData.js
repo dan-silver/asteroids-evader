@@ -8,7 +8,7 @@ var express    = require('express'),
     fs         = require('fs');
 
 var app = express()
-var wstream = fs.createWriteStream('data.csv', {'flags': 'a'});
+var wstream = fs.createWriteStream('../data.csv', {'flags': 'a'});
 
 // parse application/json
 app.use(bodyParser.urlencoded({ extended: false }))
