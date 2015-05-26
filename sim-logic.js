@@ -1,4 +1,4 @@
-var SHIP_VELOCITY_X = 450;
+var SHIP_VELOCITY_X = 850;
 
 var SENSORS = {
   quantity: 10,
@@ -297,7 +297,7 @@ window.addEventListener("load", function() {
     //add the sensors after the ship starts moving
     setTimeout(function() {
       Q("Ship").first().addSensors()
-    }, 100)
+    }, 75)
   });
 
   Q.stageScene("training");
