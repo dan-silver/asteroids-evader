@@ -31,4 +31,4 @@ node receiveData.js
 # Data collection server listening at http://0.0.0.0:3000
 
 ```
-The simulation should now be sending it's results to the node server.
+The simulation should now be sending data to the node server.
