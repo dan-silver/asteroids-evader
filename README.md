@@ -18,7 +18,9 @@ Use any server to serve the html and js files.  If you have python installed, Si
 
 ```bash
 cd web-simulation
-python -m SimpleHTTPServer # launches on port 8000 by default
+python -m SimpleHTTPServer
+# Serving HTTP on 0.0.0.0 port 8000 ...
+
 ```
 Open http://localhost:8000/ in a web browser and the simulation should automatically run in an infinite loop.
 
