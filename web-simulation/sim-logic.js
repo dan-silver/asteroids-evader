@@ -9,26 +9,47 @@ var SENSORS = {
 }
 
 var sim_data = []
+var scene;
 
-function sendSimData(collision) {
-  var ship = Q("Ship").first()
+function getShip() {
+  return Q("Ship").first()
+}
 
-  var sensorActivated = [] //0/1 = activated/not activated
+function getActivatedSensors() {
+  var activateSensors = getShip().activatedSensors
+  var sensorActivated = [] //0/1 = not activated/activated
 
-  //send an array of ints to the server, each int corresponds to a sensor being activated or not
+  //send an array of ints to the server, each corresponds to a sensor being activated or not
   for (var i=0; i<SENSORS.quantity; i++) {
-    if (i.toString() in ship.activatedSensors)
+    if (i.toString() in activateSensors)
       sensorActivated.push(1)
     else
       sensorActivated.push(0)
   }
+  return sensorActivated;
+}
 
+function getCurrentlyHitSensors() {
+  var sensors = getShip().sensors
+  var sensorActivated = [] //0/1 = not activated/activated
+
+  for (var i=0; i<SENSORS.quantity; i++) {
+  //send an array of ints to the server, each corresponds to a sensor being activated or not
+    if (sensors[i].collision)
+      sensorActivated.push(1)
+    else
+      sensorActivated.push(0)
+  }
+  return sensorActivated;
+}
+
+function sendSimData(collision) {
   $.post('http://localhost:3000/', {
     collision: collision ? 1 : 0,
-    sensors: sensorActivated
+    sensors: getActivatedSensors()
   })
 
-  Q.stageScene("training");
+  Q.stageScene("collision-training");
 }
 
 window.addEventListener("load", function() {
@@ -72,6 +93,9 @@ window.addEventListener("load", function() {
 
       if (collision) {
         this.p.ship.activateSensor(this)
+        this.collision = true
+      } else {
+        this.collision = false
       }
 
       this.fillColor = collision ? "#DB9A9A" : "#9ADB9F"
@@ -180,8 +204,23 @@ window.addEventListener("load", function() {
         p.vy += thrustY * p.acceleration;
       }
 
-      if (p.x > Q.width) {
-        sendSimData(false)
+
+      switch (scene) {
+        case "collision-training":
+          if (p.x > Q.width) {
+            sendSimData(false)
+          }
+          break;
+        case "free-movement":
+          if (Math.random() < 0.05)
+            $.get('http://localhost:5000', {
+              data: getCurrentlyHitSensors().join(",")
+            })
+            .always(function(data) {
+              debugger;
+              console.log(data)
+            });
+          break;
       }
 
     },
@@ -219,9 +258,13 @@ window.addEventListener("load", function() {
     },
 
     collision: function(col) {
-      if(col.obj.isA("Ship")) {
-        sim_data.push({todo: true})
-        sendSimData(true)
+      switch (scene) {
+        case "collision-training":
+          if(col.obj.isA("Ship")) {
+            sim_data.push({todo: true})
+            sendSimData(true)
+          }
+          break;
       }
     },
 
@@ -278,7 +321,8 @@ window.addEventListener("load", function() {
    },
   });
 
-  Q.scene("training",function(stage) {
+  Q.scene("collision-training", function(stage) {
+    scene = "collision-training"
     //set the ship on the left side heading right
     stage.insert(new Q.Ship({
       x: Q.width * 0.05,
@@ -300,7 +344,31 @@ window.addEventListener("load", function() {
     }, 75)
   });
 
-  Q.stageScene("training");
+  Q.scene("free-movement", function(stage) {
+    scene = "free-movement"
+    //set the ship on the left side heading right
+    stage.insert(new Q.Ship({
+      x: Q.width * 0.05,
+      y: Q.height/2,
+      angle: 90,
+      vx: 0
+    }));
+
+    //set the asteroid horizontally in the middle, randomize vertical postition
+    stage.insert(new Q.Asteroid({
+      size: 50,
+      x: Q.width/2,
+      y: Q.height/2
+    }));
+
+    //add the sensors after the ship starts moving
+    setTimeout(function() {
+      Q("Ship").first().addSensors()
+    }, 75)
+  });
+
+
+  Q.stageScene("free-movement");
 
   // uncomment the following 2 lines to see rendering bounds
   // Q.debug = true;

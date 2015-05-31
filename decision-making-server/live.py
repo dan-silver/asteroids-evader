@@ -3,16 +3,19 @@
 
 from flask import Flask, request
 import cPickle
+from flask.ext.cors import CORS
 
 app = Flask(__name__)
+cors = CORS(app)
+
 
 with open('../classifier.pkl', 'rb') as fid:
     clf = cPickle.load(fid)
 
     @app.route("/")
     def index():
-      data = request.args.get('data', '')
-      return str(clf.predict([data.split(',')])[0])
-
+      data = [int(numeric_string) for numeric_string in request.args.get('data', '').split(',')]
+      prediction = str(clf.predict([data])[0])
+      return prediction
     if __name__ == "__main__":
-        app.run()
+        app.run(port=5000)
