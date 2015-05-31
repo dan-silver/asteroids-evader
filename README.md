@@ -12,4 +12,21 @@ The simulation ends either when the ship reaches the right side of the window, o
  * Ids of sensors that were activated
  * Simulation result, true if there was a collision and false otherwise
 
-#### Building the model
+#### Training the collision detection model
+
+Use any server to serve the html and js files.  If you have python installed, SimpleHTTPServer is an easy option.
+
+```bash
+cd web-simulation
+python -m SimpleHTTPServer # launches on port 8000 by default
+```
+Open http://localhost:8000/ in a web browser and the simulation should automatically run in an infinite loop.
+
+To save the simulation results, start the node server.
+```bash
+cd data-collection-server
+node receiveData.js
+# Data collection server listening at http://0.0.0.0:3000
+
+```
+The simulation should now be sending it's results to the node server.
