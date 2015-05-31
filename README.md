@@ -32,3 +32,11 @@ node receiveData.js
 
 ```
 The simulation should now be sending data to the node server.
+
+#### Predicting a collision
+Start the decision-making-server:
+```bash
+cd decision-making-server
+python live.py
+# Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+```
