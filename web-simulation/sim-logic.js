@@ -215,9 +215,7 @@ window.addEventListener("load", function() {
           if (Math.random() < 0.05)
             $.get('http://localhost:5000', {
               data: getCurrentlyHitSensors().join(",")
-            })
-            .always(function(data) {
-              debugger;
+            }).always(function(data) {
               console.log(data)
             });
           break;
@@ -340,7 +338,7 @@ window.addEventListener("load", function() {
 
     //add the sensors after the ship starts moving
     setTimeout(function() {
-      Q("Ship").first().addSensors()
+      getShip().addSensors()
     }, 75)
   });
 
@@ -363,12 +361,12 @@ window.addEventListener("load", function() {
 
     //add the sensors after the ship starts moving
     setTimeout(function() {
-      Q("Ship").first().addSensors()
+      getShip().addSensors()
     }, 75)
   });
 
 
-  Q.stageScene("free-movement");
+  Q.stageScene("collision-training");
 
   // uncomment the following 2 lines to see rendering bounds
   // Q.debug = true;
